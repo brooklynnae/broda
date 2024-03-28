@@ -60,6 +60,7 @@ all: 2023_competition/enph353/enph353/all
 all: 2023_competition/enph353/enph353_npcs/all
 all: 2023_competition/enph353/enph353_utils/all
 all: 2023_competition/adeept_awr_ros_driver/all
+all: data_gathering/all
 all: time_trials/all
 all: 2023_competition/adeept_awr/adeept_awr_gazebo/all
 all: 2023_competition/enph353/enph353_gazebo/all
@@ -74,6 +75,7 @@ preinstall: 2023_competition/enph353/enph353/preinstall
 preinstall: 2023_competition/enph353/enph353_npcs/preinstall
 preinstall: 2023_competition/enph353/enph353_utils/preinstall
 preinstall: 2023_competition/adeept_awr_ros_driver/preinstall
+preinstall: data_gathering/preinstall
 preinstall: time_trials/preinstall
 preinstall: 2023_competition/adeept_awr/adeept_awr_gazebo/preinstall
 preinstall: 2023_competition/enph353/enph353_gazebo/preinstall
@@ -93,6 +95,7 @@ clean: 2023_competition/enph353/enph353/clean
 clean: 2023_competition/enph353/enph353_npcs/clean
 clean: 2023_competition/enph353/enph353_utils/clean
 clean: 2023_competition/adeept_awr_ros_driver/clean
+clean: data_gathering/clean
 clean: time_trials/clean
 clean: 2023_competition/adeept_awr/adeept_awr_gazebo/clean
 clean: 2023_competition/enph353/enph353_gazebo/clean
@@ -343,6 +346,24 @@ clean: 2023_competition/enph353/enph353_gazebo/clean
 2023_competition/enph353/enph353_utils/clean: 2023_competition/enph353/enph353_utils/CMakeFiles/enph353_utils_generate_messages_py.dir/clean
 
 .PHONY : 2023_competition/enph353/enph353_utils/clean
+
+#=============================================================================
+# Directory level rules for directory data_gathering
+
+# Recursive "all" directory target.
+data_gathering/all:
+
+.PHONY : data_gathering/all
+
+# Recursive "preinstall" directory target.
+data_gathering/preinstall:
+
+.PHONY : data_gathering/preinstall
+
+# Recursive "clean" directory target.
+data_gathering/clean:
+
+.PHONY : data_gathering/clean
 
 #=============================================================================
 # Directory level rules for directory gtest

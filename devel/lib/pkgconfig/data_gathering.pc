@@ -1,0 +1,8 @@
+prefix=/home/fizzer/ros_wc/devel
+
+Name: data_gathering
+Description: Description of data_gathering
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
