@@ -27,6 +27,7 @@ class Picture_Taker():
                 if key == ord('s'):
                     cv2.imwrite(f'img_{self.counter}.jpg', self.img)
                     self.counter += 1
+                    print(f'saved image {self.counter}')
                 elif key == ord('q'):
                     break
         return
