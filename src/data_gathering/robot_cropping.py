@@ -22,6 +22,8 @@ class SignReader():
         self.lower_hsv = np.array([lh,ls,lv])
         self.upper_hsv = np.array([uh,us,uv])
         self.img = None
+
+        self.foundSign = False
                 
     def callback(self, msg):
         self.img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
@@ -32,9 +34,9 @@ class SignReader():
         mask = cv2.inRange(hsv_img, self.lower_hsv, self.upper_hsv)
 
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        sign_mask1 = cv2.inRange(gray_img, 95, 105)
-        sign_mask2 = cv2.inRange(gray_img, 195, 205)
-        sign_mask3 = cv2.inRange(gray_img, 115, 125)
+        sign_mask1 = cv2.inRange(gray_img, 98, 105)
+        sign_mask2 = cv2.inRange(gray_img, 197, 205)
+        sign_mask3 = cv2.inRange(gray_img, 119, 125)
         sign_mask = cv2.bitwise_or(sign_mask1, sign_mask2)
         sign_mask = cv2.bitwise_or(sign_mask, sign_mask3)
 
@@ -45,10 +47,14 @@ class SignReader():
         largest_contour = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(largest_contour)
 
-        if w < 75 or h < 65 or w > 175 or h > 120:
-            print('no sign detected')
+        if not(100 < w < 260) or not(70 < h < 170):
+            # print('no sign detected')
+            if self.foundSign:
+                cv2.destroyWindow('cropped_img')
+                self.foundSign = False
             return
         else:
+            print("sign detected")
             overlapping_points = [(point[0][0], point[0][1]) for point in largest_contour if point[0][0] <= x+10 or point[0][0] >= x+w-11]
             corner1 = min((point for point in overlapping_points if point[0] <= x+10), key=lambda p: p[1], default=())
             corner2 = min((point for point in overlapping_points if point[0] >= x+w-11), key=lambda p: p[1], default=())
@@ -62,6 +68,8 @@ class SignReader():
             
             # final_img = cv2.resize(cropped_img, (w*4, h*4))
             # cv2.imshow('final_img', final_img)
+
+            self.foundSign = True
 
             cv2.imshow('cropped_img', cropped_img)
             cv2.waitKey(1)
