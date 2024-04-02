@@ -43,8 +43,8 @@ upper_hsv = np.array([uh,us,uv])
 # cv2.waitKey(0)
 
 # Code for cropping each image to the sign
-for i in range(61):
-    img = cv2.imread(f'sign_images_4/img_{i}.jpg')
+for i in range(22):
+    img = cv2.imread(f'sign_images_5/img_{i}.jpg')
     # img = cv2.imread(f'sign_images_2/img_{i}.jpg')
     cv2.imshow('image', img)
 
@@ -159,6 +159,7 @@ for i in range(61):
     # cv2.imwrite(f'sign_images_1/cropped_img_{i}.jpg', cropped_img2)
     # cv2.imwrite(f'sign_images_2/cropped_img_{i}.jpg', cropped_img2)
     # cv2.imwrite(f'sign_images_3_false/cropped_img_{i}.jpg', cropped_img2)
-    cv2.imwrite(f'sign_images_4/cropped_img_{i}.jpg', cropped_img2)
+    # cv2.imwrite(f'sign_images_4/cropped_img_{i}.jpg', cropped_img2)
+    cv2.imwrite(f'sign_images_5/cropped_img_{i}.jpg', cropped_img2)
 
 
