@@ -43,10 +43,10 @@ upper_hsv = np.array([uh,us,uv])
 # cv2.waitKey(0)
 
 # Code for cropping each image to the sign
-for i in range(22):
-    img = cv2.imread(f'sign_images_5/img_{i}.jpg')
+for i in range(61):
+    img = cv2.imread(f'sign_images_4/img_{i}.jpg')
     # img = cv2.imread(f'sign_images_2/img_{i}.jpg')
-    cv2.imshow('image', img)
+    # cv2.imshow('image', img)
 
     # Threshold the whole sign such that it is black (all blue and white parts)
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -127,11 +127,11 @@ for i in range(22):
     # print(corner1, corner2, corner3, corner4)
     # print('----------- next image -----------')
 
-    # cv2.circle(img, corner1, 5, (0, 0, 255), -1)
-    # cv2.circle(img, corner2, 5, (0, 0, 255), -1)
-    # cv2.circle(img, corner3, 5, (0, 0, 255), -1)
-    # cv2.circle(img, corner4, 5, (0, 0, 255), -1)
-    # cv2.imshow('circle img', img)
+    cv2.circle(img, corner1, 5, (0, 0, 255), -1)
+    cv2.circle(img, corner2, 5, (0, 0, 255), -1)
+    cv2.circle(img, corner3, 5, (0, 0, 255), -1)
+    cv2.circle(img, corner4, 5, (0, 0, 255), -1)
+    cv2.imshow('circle img', img)
 
     # if width is not between 100 and 250 or height not between 70 and 130,
     # then filter it out
@@ -160,6 +160,6 @@ for i in range(22):
     # cv2.imwrite(f'sign_images_2/cropped_img_{i}.jpg', cropped_img2)
     # cv2.imwrite(f'sign_images_3_false/cropped_img_{i}.jpg', cropped_img2)
     # cv2.imwrite(f'sign_images_4/cropped_img_{i}.jpg', cropped_img2)
-    cv2.imwrite(f'sign_images_5/cropped_img_{i}.jpg', cropped_img2)
+    # cv2.imwrite(f'sign_images_5/cropped_img_{i}.jpg', cropped_img2)
 
 
