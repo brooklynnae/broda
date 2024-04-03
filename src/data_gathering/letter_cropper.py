@@ -43,8 +43,13 @@ upper_hsv = np.array([uh,us,uv])
 # cv2.waitKey(0)
 
 # Code for cropping each image to the sign
-for i in range(61):
-    img = cv2.imread(f'sign_images_4/img_{i}.jpg')
+# sign images 1 - 8 images
+# sign images 2 - 8 images
+# sign images 3 - 44 images
+# sign images 4 - 61 images
+# sign images 5 - 22 images
+for i in range(22):
+    img = cv2.imread(f'sign_images_5/img_{i}.jpg')
     # img = cv2.imread(f'sign_images_2/img_{i}.jpg')
     # cv2.imshow('image', img)
 
@@ -55,6 +60,7 @@ for i in range(61):
 
     # Threshold just the white part of the sign such that it is white
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # cv2.imshow('gray img', gray_img)
     sign_mask1 = cv2.inRange(gray_img, 98, 105)
     sign_mask2 = cv2.inRange(gray_img, 197, 205)
     sign_mask3 = cv2.inRange(gray_img, 119, 125)
@@ -79,8 +85,10 @@ for i in range(61):
     contours, _ = cv2.findContours(combined_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     largest_contour = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(largest_contour)
+    # img_copy = img.copy()
+    # cv2.imshow('rectangle', cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 255, 0), 2))
     print(f'----------- image {i} -----------')
-    print(w, h)
+    # print(w, h)
 
     # Roughly find the corners of the sign
     
@@ -127,21 +135,23 @@ for i in range(61):
     # print(corner1, corner2, corner3, corner4)
     # print('----------- next image -----------')
 
-    cv2.circle(img, corner1, 5, (0, 0, 255), -1)
-    cv2.circle(img, corner2, 5, (0, 0, 255), -1)
-    cv2.circle(img, corner3, 5, (0, 0, 255), -1)
-    cv2.circle(img, corner4, 5, (0, 0, 255), -1)
-    cv2.imshow('circle img', img)
+    img_copy = img.copy()
+    cv2.circle(img_copy, corner1, 5, (0, 0, 255), -1)
+    cv2.circle(img_copy, corner2, 5, (0, 0, 255), -1)
+    cv2.circle(img_copy, corner3, 5, (0, 0, 255), -1)
+    cv2.circle(img_copy, corner4, 5, (0, 0, 255), -1)
+    cv2.imshow('circle img', img_copy)
 
-    # if width is not between 100 and 250 or height not between 70 and 130,
-    # then filter it out
-    if not(100 < w < 260) or not(70 < h < 170):
-        print('no sign detected')
+    # get the area of the contour and filter on it
+    area = cv2.contourArea(largest_contour)
+    print(area)
+    if area < 6000:
+        print('filtered on size')
         cv2.destroyWindow('cropped_img_perspective')
         cv2.waitKey(0)
         continue
     
-    print('sign detected')
+    # print('sign detected')
     # Crop the image and perspective transform it
     # cropped_img = img[y:y+h, x:x+w]
     # cv2.imshow('cropped_img', cropped_img)
@@ -149,9 +159,41 @@ for i in range(61):
     dst_pts = np.array([[0, 0], [w, 0], [0, h], [w, h]], dtype=np.float32)
     M = cv2.getPerspectiveTransform(src_pts, dst_pts)
     cropped_img2 = cv2.warpPerspective(img, M, (w, h))
-    cv2.imshow('cropped_img_perspective', cropped_img2)
+    # cv2.imshow('cropped_img_perspective', cropped_img2)
     # final_img = cv2.resize(cropped_img2, (w*4, h*4))
     # cv2.imshow('final_img', final_img)
+
+    # for detecting red
+    # uh_crop = 255
+    # us_crop = 255
+    # uv_crop = 255
+    # lh_crop = 170
+    # ls_crop = 75
+    # lv_crop = 0
+
+    # for detecting blue
+    uh_crop = 130
+    us_crop = 255
+    uv_crop = 255
+    lh_crop = 120
+    ls_crop = 100
+    lv_crop = 50
+
+    lower_hsv_crop = np.array([lh_crop, ls_crop, lv_crop])
+    upper_hsv_crop = np.array([uh_crop, us_crop, uv_crop])
+
+    # hsv_cropped_img = cv2.cvtColor(cropped_img2, cv2.COLOR_BGR2HSV) # detect red
+    hsv_cropped_img = cv2.cvtColor(cropped_img2, cv2.COLOR_RGB2HSV) # detect blue and flip channels
+    mask_cropped = cv2.inRange(hsv_cropped_img, lower_hsv_crop, upper_hsv_crop)
+
+    if np.any(mask_cropped):
+        print('sign detected')
+        cv2.imshow('cropped_img_perspective', cropped_img2)
+    else:
+        print('filtered on red circle')
+        cv2.destroyWindow('cropped_img_perspective')
+        cv2.waitKey(0)
+        continue
 
     cv2.waitKey(0)
     # cv2.destroyAllWindows()

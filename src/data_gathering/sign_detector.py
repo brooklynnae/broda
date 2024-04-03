@@ -39,6 +39,8 @@ for i in range(22):
     except Exception as e:
         print(f"An error occurred while reading file cropped_img_{i}.jpg: {e}")
 
+imgs_copy = imgs.copy()
+
 for i in range(len(imgs)):
     # print(imgs[i].shape)
     imgs[i] = cv2.resize(imgs[i], (200, 150))
@@ -88,12 +90,12 @@ upper_hsv = np.array([uh,us,uv])
 # cv2.imshow('thresholded image', mask)
 # cv2.waitKey(0)
 
-for i in range(len(imgs)):
-    hsv_img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2HSV)
+for i in range(len(imgs_copy)):
+    hsv_img = cv2.cvtColor(imgs_copy[i], cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv_img, lower_hsv, upper_hsv)
     if np.any(mask):
         print(f"image {i} is a true sign")
     else:
         print(f"image {i} is a false sign")
-    cv2.imshow('image', imgs[i])
+    cv2.imshow('image', imgs_copy[i])
     cv2.waitKey(0)
