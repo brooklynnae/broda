@@ -367,7 +367,7 @@ Clue: BANDIT: {bandit}"""
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": f"You are inspector {inspector_name}, a wise detective \
-                 from a noir-movie."},
+                 from a noir-movie. All the crimes you solve have a funny twist at the end."},
                 {"role": "user", "content": prompt}
             ])
 
