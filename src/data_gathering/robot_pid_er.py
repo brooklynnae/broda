@@ -18,10 +18,13 @@ class Driver():
 
         self.img = None
         self.num_pixels_above_bottom = 200
+        self.line_cutoff = 700
 
         self.kp = 5
         self.lin_speed = 0.2
         self.rot_speed = 1.0
+
+        self.state = 'init'
 
     def callback(self, msg):
         self.img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
@@ -50,28 +53,90 @@ class Driver():
                 road_centre = right_index // 2
         else:
             print('no road lines detected')
-            road_centre = width // 2
+            road_centre = -1
 
-        cv2.imshow('camera feed', cv2.circle(img, (road_centre, height - y), 5, (0, 0, 255), -1))
-        cv2.waitKey(1)
+        if road_centre != -1:
+            cv2.imshow('camera feed', cv2.circle(img, (road_centre, height - y), 5, (0, 0, 255), -1))
+            cv2.waitKey(1)
 
         return road_centre
     
     def get_error(self, img):
         width = img.shape[1]
         road_centre = self.find_road_centre(img, self.num_pixels_above_bottom)
-        error = ((width // 2) - road_centre) / (width // 2)
+        if road_centre != -1:
+            error = ((width // 2) - road_centre) / (width // 2)
+        else:
+            error = 0
         return error
+    
+    def check_red(self, img):
+        height = img.shape[0]
+        cropped_img = img[self.line_cutoff:height]
+            
+        uh_red = 255; us_red = 255; uv_red = 255
+        lh_red = 90; ls_red = 50; lv_red = 230
+        lower_hsv_red = np.array([lh_red, ls_red, lv_red])
+        upper_hsv_red = np.array([uh_red, us_red, uv_red])
+        
+        hsv_img = cv2.cvtColor(cropped_img, cv2.COLOR_RGB2HSV)
+        red_mask = cv2.inRange(hsv_img, lower_hsv_red, upper_hsv_red)
+
+        contours, _ = cv2.findContours(red_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        if contours.__len__() == 0:
+            return False
+
+        largest_contour = max(contours, key=cv2.contourArea)
+        if cv2.contourArea(largest_contour) < 1000:
+            return False
+        else:
+            return True
+    
+    def start(self):
+        print('starting the show (entering road pid state)')
+        self.state = 'road'
     
     def run(self):
         while not rospy.is_shutdown():
             if self.img is not None:
-                error = self.kp * self.get_error(self.img)
-                print(error)
-                move = Twist()
-                move.linear.x = self.lin_speed
-                move.angular.z = self.rot_speed * error
-                self.vel_pub.publish(move)
+                if self.state == 'init':
+                    self.start()
+                elif self.state == 'road':
+                    if self.check_red(self.img):
+                        print('red detected')
+                        self.state = 'pedo'
+                    else:
+                        error = self.kp * self.get_error(self.img)
+                        # print(error)
+                        move = Twist()
+                        move.linear.x = self.lin_speed
+                        move.angular.z = self.rot_speed * error
+                        self.vel_pub.publish(move)
+                elif self.state == 'pedo':
+                    move = Twist()
+                    move.linear.x = 0
+                    move.angular.z = 0
+                    self.vel_pub.publish(move)
+                    rospy.sleep(3)
+
+                    move.linear.x = 1
+                    move.angular.z = 0
+                    self.vel_pub.publish(move)
+                    rospy.sleep(0.75)
+
+                    # move.linear.x = 0
+                    # move.angular.z = 0
+                    # self.vel_pub.publish(move)
+                    self.state = 'road'
+
+                # if error != self.kp * 1000:
+                #     move.linear.x = self.lin_speed
+                #     move.angular.z = self.rot_speed * error
+                #     self.vel_pub.publish(move)
+                # else:
+                #     move.linear.x = 0
+                #     move.angular.z = 0
+                #     self.vel_pub.publish(move)
         
         rospy.sleep(0.1)
 

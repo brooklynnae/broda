@@ -61,15 +61,44 @@ def find_road_centre(img, y):
 
     return road_centre    
 
+def check_red(img):
+    height, width = img.shape[:2]
+    y_cutoff = 500
+    cropped_img = img[y_cutoff:height]
+
+    cv2.imshow('cropped image', cropped_img)
+        
+    uh_red = 255; us_red = 255; uv_red = 255
+    lh_red = 90; ls_red = 50; lv_red = 230
+    lower_hsv_red = np.array([lh_red, ls_red, lv_red])
+    upper_hsv_red = np.array([uh_red, us_red, uv_red])
+    
+    hsv_img = cv2.cvtColor(cropped_img, cv2.COLOR_RGB2HSV)
+    red_mask = cv2.inRange(hsv_img, lower_hsv_red, upper_hsv_red)
+    cv2.imshow('masked image', red_mask)
+    contours, _ = cv2.findContours(red_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    if contours.__len__() == 0:
+        return False
+
+    largest_contour = max(contours, key=cv2.contourArea)
+    if cv2.contourArea(largest_contour) < 1000:
+        return False
+    else:
+        return True
+
+    
+
+
 for image in imgs:
     print('--- new image ---')
-    height, width = image.shape[:2]
-    road_centre_1 = find_road_centre(image, 50)
-    road_centre_2 = find_road_centre(image, 100)
-    road_centre_3 = find_road_centre(image, 150)
-    image = cv2.circle(image, (road_centre_1, height-50), 5, (0, 0, 255), -1)
-    image = cv2.circle(image, (road_centre_2, height-100), 5, (0, 0, 255), -1)
-    image = cv2.circle(image, (road_centre_3, height-150), 5, (0, 0, 255), -1)
-    image = cv2.line(image, (width // 2, 0), (width // 2, height), (0, 255, 0), 2)
+    print(check_red(image))
+    # height, width = image.shape[:2]
+    # road_centre_1 = find_road_centre(image, 50)
+    # road_centre_2 = find_road_centre(image, 100)
+    # road_centre_3 = find_road_centre(image, 150)
+    # image = cv2.circle(image, (road_centre_1, height-50), 5, (0, 0, 255), -1)
+    # image = cv2.circle(image, (road_centre_2, height-100), 5, (0, 0, 255), -1)
+    # image = cv2.circle(image, (road_centre_3, height-150), 5, (0, 0, 255), -1)
+    # image = cv2.line(image, (width // 2, 0), (width // 2, height), (0, 255, 0), 2)
     cv2.imshow('image', image)
     cv2.waitKey(0)

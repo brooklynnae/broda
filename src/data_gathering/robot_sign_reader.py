@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Twist
 
 class SignReader():
     def __init__(self):
@@ -13,8 +14,16 @@ class SignReader():
         self.bridge = CvBridge()
         rospy.Subscriber("/R1/pi_camera/image_raw", Image, self.callback)
 
+        self.vel_pub = rospy.Publisher('/R1/cmd_vel', Twist, queue_size=1)
+
         self.img = None
         self.min_sign_area = 6000
+        
+        self.num_pixels_above_bottom = 200
+        self.kp = 5
+        self.lin_speed = 0.2
+        self.rot_speed = 1.0
+        self.no_lines_error = 1000
         
         self.sign_img = None
 
@@ -86,10 +95,10 @@ class SignReader():
         # threshold for red in the cropped image
         uh_red = 130; us_red = 255; uv_red = 255
         lh_red = 120; ls_red = 100; lv_red = 50
-        lower_hsv_crop = np.array([lh_red, ls_red, lv_red])
-        upper_hsv_crop = np.array([uh_red, us_red, uv_red])
+        lower_hsv_red = np.array([lh_red, ls_red, lv_red])
+        upper_hsv_red = np.array([uh_red, us_red, uv_red])
         hsv_cropped_img = cv2.cvtColor(cropped_img, cv2.COLOR_RGB2HSV)
-        red_mask_cropped = cv2.inRange(hsv_cropped_img, lower_hsv_crop, upper_hsv_crop)
+        red_mask_cropped = cv2.inRange(hsv_cropped_img, lower_hsv_red, upper_hsv_red)
 
         # filter out if no red in the cropped image
         if not np.any(red_mask_cropped):
@@ -129,6 +138,66 @@ class SignReader():
         # TODO: crop sign to letters and send to NN
         print('sent sign image to NN')
         return
+    
+    def find_road_centre(self, img, y):
+        """
+        This method finds the centre of the road in an image.
+
+        Args:
+            img (numpy.ndarray): The input image, in BGR format.
+            y (int): The y-coordinate from the bottom of the image to find the road centre.
+
+        Returns:
+            road_centre (int): The x-coordinate of the road centre, -1 if no road lines are detected.
+        """
+        height, width = img.shape[:2]
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        white_mask = cv2.inRange(gray_img, 250, 255)
+
+        left_index = -1
+        right_index = -1
+
+        for i in range(width):
+            if white_mask[height - y, i] == 255 and left_index == -1:
+                left_index = i
+            elif white_mask[height - y, i] == 255 and left_index != -1:
+                right_index = i
+
+        road_centre = -1
+        if left_index != -1 and right_index != -1:
+            if right_index - left_index > 150:
+                road_centre = (left_index + right_index) // 2
+            elif left_index < width // 2:
+                road_centre = (left_index + width) // 2
+            else:
+                road_centre = right_index // 2
+        else:
+            print('no road lines detected')
+            road_centre = -1
+
+        if road_centre != -1:
+            cv2.imshow('camera feed', cv2.circle(img, (road_centre, height - y), 5, (0, 0, 255), -1))
+            cv2.waitKey(1)
+
+        return road_centre
+    
+    def get_error(self, img):
+        """
+        This method calculates the error between the centre of the road and the centre of the image.
+
+        Args:
+            img (numpy.ndarray): The input image, in BGR format.
+
+        Returns:
+            error (int): The x coordinate difference between the road centre and the centre of the image, 1000 if no road lines are detected.
+        """
+        width = img.shape[1]
+        road_centre = self.find_road_centre(img, self.num_pixels_above_bottom)
+        if road_centre != -1:
+            error = ((width // 2) - road_centre) / (width // 2)
+        else:
+            error = self.no_lines_error
+        return error
 
     def run(self):
         while not rospy.is_shutdown():
@@ -137,6 +206,17 @@ class SignReader():
                 cropped_img = self.check_if_sign(self.img) # returns None if no sign detected
                 if cropped_img is not None:
                     self.compare_sign(cropped_img) # changes self.sign_img if new sign is larger
+
+                error = self.kp * self.get_error(self.img)
+                move = Twist()
+                if error != self.kp * self.no_lines_error:
+                    move.linear.x = self.lin_speed
+                    move.angular.z = self.rot_speed * error
+                    self.vel_pub.publish(move)
+                else:
+                    move.linear.x = 0
+                    move.angular.z = 0
+                    self.vel_pub.publish(move)
 
             # if we've found a sign ...
             if self.sign_img is not None:
