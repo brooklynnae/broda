@@ -123,8 +123,8 @@ class SignReader():
                 print('bigger sign found')
         return
 
-    # when enough time has elapsed from initial sign detection, get the letters from the best sign
-    # image and send them to the neural network
+    # when enough time has elapsed from initial sign detection, get the letters from the best 
+    # sign image and send them to the neural network
     def read_sign(self):
         # TODO: crop sign to letters and send to NN
         print('sent sign image to NN')
@@ -151,7 +151,7 @@ class SignReader():
                     self.sign_img = None
                     self.firstSignTime = None
 
-            rospy.sleep(0.1)
+            rospy.sleep(0.1) # 100ms delay
 
 if __name__ == '__main__':
     try:
