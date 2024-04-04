@@ -9,31 +9,38 @@ import numpy as np
 
 # 1. Code for combining all images into one
 
-imgs = [cv2.imread(f'sign_images_1/img_{i}.jpg') for i in range(8)]
-imgs.append(cv2.imread('img_1.jpg'))
-imgs.append(cv2.imread('img_6.jpg'))
-imgs.append(cv2.imread('img_7.jpg'))
-imgs.append(cv2.imread('img_12.jpg'))
-imgs.append(cv2.imread('img_15.jpg'))
-imgs.append(cv2.imread('img_18.jpg'))
-imgs.append(cv2.imread('img_21.jpg'))
-imgs.append(cv2.imread('img_22.jpg'))
+# imgs = [cv2.imread(f'sign_images_1/img_{i}.jpg') for i in range(8)]
+# imgs.append(cv2.imread('img_1.jpg'))
+# imgs.append(cv2.imread('img_6.jpg'))
+# imgs.append(cv2.imread('img_7.jpg'))
+# imgs.append(cv2.imread('img_12.jpg'))
+# imgs.append(cv2.imread('img_15.jpg'))
+# imgs.append(cv2.imread('img_18.jpg'))
+# imgs.append(cv2.imread('img_21.jpg'))
+# imgs.append(cv2.imread('img_22.jpg'))
+imgs = [cv2.imread(f'road_images_1/img_{i}.jpg') for i in range(21)]
 # shrink images
 width = imgs[0].shape[1] 
 height = imgs[0].shape[0] 
-imgs = [cv2.resize(img, (int(width/3), int(height/3))) for img in imgs]
+imgs = [cv2.resize(img, (int(width/4), int(height/4))) for img in imgs]
+
+# for i in range(len(imgs)):
+#     print(f'img_{i}')
+#     cv2.imshow('image', imgs[i])
+#     cv2.waitKey(0)
 
 # put images all into one
-ho1 = np.hstack((imgs[0], imgs[1], imgs[2], imgs[3]))
-ho2 = np.hstack((imgs[4], imgs[5], imgs[6], imgs[7]))
-ho3 = np.hstack((imgs[8], imgs[9], imgs[10], imgs[11]))
-# ho4 = np.hstack((imgs[12], imgs[13], imgs[14], imgs[15]))
-img_array = np.vstack((ho1, ho2, ho3))
-# cv2.imshow('img1', img_array)
-# cv2.waitKey(0)
+ho1 = np.hstack((imgs[0], imgs[1], imgs[2], imgs[3], imgs[4]))
+ho2 = np.hstack((imgs[5], imgs[6], imgs[7], imgs[8], imgs[9]))
+ho3 = np.hstack((imgs[10], imgs[11], imgs[12], imgs[13], imgs[14]))
+ho4 = np.hstack((imgs[15], imgs[16], imgs[18], imgs[19], imgs[20]))
+img_array = np.vstack((ho1, ho2, ho3, ho4))
+cv2.imshow('img1', img_array)
+cv2.waitKey(0)
 
 # cv2.imwrite('img_array_1.jpg', img_array)
 # cv2.imwrite('img_array_2.jpg', img_array)
+# cv2.imwrite('road_array.jpg', img_array)
 
 # # v1
 # uh = 140
@@ -80,7 +87,7 @@ mask = cv2.inRange(hsv_img, lower_hsv, upper_hsv)
 # cv2.imwrite('all_imgs.jpg', img_array) 
 
 gray_img_array = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
-cv2.imshow('gray_img_array', gray_img_array)
+# cv2.imshow('gray_img_array', gray_img_array)
 sign_mask1 = cv2.inRange(gray_img_array, 99, 105)
 sign_mask2 = cv2.inRange(gray_img_array, 197, 205)
 sign_mask3 = cv2.inRange(gray_img_array, 119, 125)
@@ -107,4 +114,4 @@ mask_not2 = cv2.bitwise_not(mask2)
 combined_mask = cv2.bitwise_and(mask_not, sign_mask)
 # cv2.imshow('combined_mask', combined_mask)
 
-cv2.waitKey(0)
+# cv2.waitKey(0)

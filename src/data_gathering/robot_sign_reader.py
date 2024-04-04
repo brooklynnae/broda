@@ -19,7 +19,7 @@ class SignReader():
         self.sign_img = None
 
         self.firstSignTime = None
-        self.durationBetweenSigns = rospy.Duration.from_sec(3)
+        self.durationBetweenSigns = rospy.Duration.from_sec(5)
 
     # callback function for robot camera feed 
     def callback(self, msg):
@@ -59,14 +59,14 @@ class SignReader():
         # find largest contour in the combined mask image
         contours, _ = cv2.findContours(combined_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         if contours.__len__() == 0: # return None if no contours are found
-            print('no sign detected - no contours')
+            # print('no sign detected - no contours')
             return None
         largest_contour = max(contours, key=cv2.contourArea)
 
         # filter out contours that are too small
         area = cv2.contourArea(largest_contour)
         if area < self.min_sign_area:
-            print('no sign detected - too small')
+            # print('no sign detected - too small')
             return None
 
         # find the corners of the sign
@@ -93,13 +93,13 @@ class SignReader():
 
         # filter out if no red in the cropped image
         if not np.any(red_mask_cropped):
-            print('no sign detected - no red')
+            # print('no sign detected - no red')
             return None
         
         # TODO: add code to see if sign is cut off 
 
         # found a sign !!
-        print('sign detected')
+        # print('sign detected')
         return cropped_img
     
     def compare_sign(self, new_sign):
@@ -116,7 +116,7 @@ class SignReader():
         if self.sign_img is None: # if stored sign image hasn't been assigned yet, assign it
             self.sign_img = new_sign
             self.firstSignTime = rospy.Time.now() # start timer for reading sign
-            print('assigned sign image')
+            print('assigned sign image and timer started')
         else:
             if new_sign.size > self.sign_img.size: # compare size of new sign to stored sign
                 self.sign_img = new_sign
@@ -140,6 +140,9 @@ class SignReader():
 
             # if we've found a sign ...
             if self.sign_img is not None:
+                # display the sign image
+                cv2.imshow('sign', self.sign_img)
+                cv2.waitKey(1)
                 # check if enough time has elapsed to read the sign
                 current_time = rospy.Time.now()
                 elapsed_time = current_time - self.firstSignTime
@@ -147,10 +150,6 @@ class SignReader():
                     self.read_sign()
                     self.sign_img = None
                     self.firstSignTime = None
-
-                # display the sign image
-                cv2.imshow('sign', self.sign_img)
-                cv2.waitKey(1)
 
             rospy.sleep(0.1)
 
